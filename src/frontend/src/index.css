@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Blue primary: deep blue */
+    --primary: 47.5 0.22 255;
+    --primary-foreground: 100 0 0;
+
+    /* Green accent */
+    --accent: 52 0.18 145;
+    --accent-foreground: 100 0 0;
+
+    /* Secondary: light blue-gray */
+    --secondary: 96 0.015 240;
+    --secondary-foreground: 25 0.08 255;
+
+    --background: 100 0 0;
+    --foreground: 18 0.05 255;
+
+    --card: 100 0 0;
+    --card-foreground: 18 0.05 255;
+
+    --popover: 100 0 0;
+    --popover-foreground: 18 0.05 255;
+
+    --muted: 96 0.012 240;
+    --muted-foreground: 50 0.04 255;
+
+    --destructive: 50 0.22 25;
+    --destructive-foreground: 100 0 0;
+
+    --border: 92 0.02 240;
+    --input: 92 0.02 240;
+    --ring: 47.5 0.22 255;
+
+    --radius: 0.625rem;
+
+    --chart-1: 47.5 0.22 255;
+    --chart-2: 52 0.18 145;
+    --chart-3: 65 0.14 220;
+    --chart-4: 72 0.16 160;
+    --chart-5: 60 0.1 200;
+
+    --sidebar: 97 0.01 240;
+    --sidebar-foreground: 18 0.05 255;
+    --sidebar-primary: 47.5 0.22 255;
+    --sidebar-primary-foreground: 100 0 0;
+    --sidebar-accent: 95 0.015 240;
+    --sidebar-accent-foreground: 25 0.08 255;
+    --sidebar-border: 90 0.02 240;
+    --sidebar-ring: 47.5 0.22 255;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+}
+
+/* Custom hero gradient */
+.hero-gradient {
+  background: linear-gradient(
+    135deg,
+    oklch(30 0.22 255) 0%,
+    oklch(38 0.2 240) 40%,
+    oklch(40 0.18 185) 100%
+  );
+}
+
+.service-card:hover .service-icon {
+  transform: scale(1.1) rotate(-5deg);
+  transition: transform 0.25s ease;
+}
+
+.service-icon {
+  transition: transform 0.25s ease;
+}
