@@ -38,12 +38,51 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ServiceType } from "./backend";
 import { useActor } from "./hooks/useActor";
 
 const queryClient = new QueryClient();
+
+const SERVICE_BULLETS: Record<string, string[]> = {
+  plumber: [
+    "Pipe leak & burst repair",
+    "Bathroom & kitchen fitting",
+    "Drainage & sewage cleaning",
+    "Water tank installation",
+    "Emergency plumbing",
+  ],
+  electrician: [
+    "Wiring & rewiring",
+    "Switchboard & socket repair",
+    "Fan & light installation",
+    "Power outage troubleshooting",
+    "Safety & earthing checks",
+  ],
+  carpenter: [
+    "Furniture repair & polish",
+    "Door & window fitting",
+    "Custom woodwork",
+    "Wardrobe & shelf installation",
+    "Wood termite treatment",
+  ],
+  acRepair: [
+    "Full AC servicing & cleaning",
+    "Gas refill & refrigerant top-up",
+    "Cooling issue diagnosis",
+    "New AC installation",
+    "PCB & compressor repair",
+  ],
+  cleaning: [
+    "Full home deep cleaning",
+    "Bathroom & toilet sanitization",
+    "Kitchen degreasing",
+    "Sofa & carpet cleaning",
+    "Post-construction cleanup",
+  ],
+};
 
 const SERVICES = [
   {
@@ -52,8 +91,13 @@ const SERVICES = [
     icon: Droplets,
     color: "text-blue-500",
     bg: "bg-blue-50",
+    activeBg: "bg-blue-100",
+    activeBorder: "border-blue-400",
+    iconColor: "oklch(55 0.22 255)",
     description:
       "Pipe repairs, leakage fixes, bathroom fitting, drainage solutions.",
+    longDescription:
+      "Our licensed plumbers tackle everything from emergency burst pipes to full bathroom renovations. We carry all common spares and arrive ready to fix the problem in a single visit.",
   },
   {
     id: ServiceType.electrician,
@@ -61,8 +105,13 @@ const SERVICES = [
     icon: Zap,
     color: "text-yellow-500",
     bg: "bg-yellow-50",
+    activeBg: "bg-yellow-100",
+    activeBorder: "border-yellow-400",
+    iconColor: "oklch(70 0.18 85)",
     description:
       "Wiring, switchboard repairs, fan/light installation, safety checks.",
+    longDescription:
+      "Certified electricians for all household electrical needs. Whether it's a tripping circuit breaker or a complete rewiring project, we keep your home safe and powered.",
   },
   {
     id: ServiceType.carpenter,
@@ -70,8 +119,13 @@ const SERVICES = [
     icon: Hammer,
     color: "text-orange-500",
     bg: "bg-orange-50",
+    activeBg: "bg-orange-100",
+    activeBorder: "border-orange-400",
+    iconColor: "oklch(65 0.2 50)",
     description:
       "Furniture repair, door/window fixes, custom woodwork solutions.",
+    longDescription:
+      "Skilled carpenters for furniture restoration, custom cabinetry, and structural woodwork. We bring premium craftsmanship with locally-sourced materials to every project.",
   },
   {
     id: ServiceType.acRepair,
@@ -79,8 +133,13 @@ const SERVICES = [
     icon: Wind,
     color: "text-cyan-500",
     bg: "bg-cyan-50",
+    activeBg: "bg-cyan-100",
+    activeBorder: "border-cyan-400",
+    iconColor: "oklch(60 0.18 200)",
     description:
       "AC servicing, gas refill, cooling issues, installation support.",
+    longDescription:
+      "Beat the Tamil Nadu heat with our expert AC technicians. From annual servicing to complex compressor repairs, we restore your cooling fast — with same-day availability.",
   },
   {
     id: ServiceType.cleaning,
@@ -88,8 +147,13 @@ const SERVICES = [
     icon: Sparkles,
     color: "text-green-500",
     bg: "bg-green-50",
+    activeBg: "bg-green-100",
+    activeBorder: "border-green-400",
+    iconColor: "oklch(55 0.18 145)",
     description:
       "Deep home cleaning, bathroom sanitization, kitchen & sofa cleaning.",
+    longDescription:
+      "Professional deep-cleaning teams using eco-friendly products. We tackle the toughest grime in kitchens, bathrooms, and living areas — leaving your home spotless and fresh.",
   },
 ];
 
@@ -345,6 +409,9 @@ function App() {
   const [heroServiceSelect, setHeroServiceSelect] = useState<ServiceType | "">(
     "",
   );
+  const [activeServiceId, setActiveServiceId] = useState<ServiceType>(
+    SERVICES[0].id,
+  );
 
   const openBooking = (service?: ServiceType) => {
     setDefaultService(service);
@@ -354,6 +421,10 @@ function App() {
   const handleHeroBook = () => {
     openBooking(heroServiceSelect || undefined);
   };
+
+  const activeService =
+    SERVICES.find((s) => s.id === activeServiceId) ?? SERVICES[0];
+  const activeBullets = SERVICE_BULLETS[activeServiceId] ?? [];
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -681,7 +752,8 @@ function App() {
         {/* SERVICES SECTION */}
         <section id="services" className="py-20 bg-secondary/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
+            {/* Section Heading */}
+            <div className="text-center mb-12">
               <span
                 className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold mb-4"
                 style={{
@@ -700,37 +772,155 @@ function App() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              {SERVICES.map((service, idx) => (
-                <div
-                  key={service.id}
-                  data-ocid={`services.item.${idx + 1}`}
-                  className="service-card bg-card rounded-2xl p-6 shadow-card border border-border hover:shadow-hero hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center gap-4"
-                >
-                  <div
-                    className={`service-icon flex items-center justify-center w-16 h-16 rounded-2xl ${service.bg}`}
+            {/* Mobile: Horizontal Tab Strip */}
+            <div className="flex md:hidden gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide -mx-1 px-1">
+              {SERVICES.map((service, idx) => {
+                const isActive = service.id === activeServiceId;
+                return (
+                  <button
+                    key={service.id}
+                    type="button"
+                    onClick={() => setActiveServiceId(service.id)}
+                    data-ocid={`services.tab.${idx + 1}`}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap border-2 transition-all duration-200 shrink-0 ${
+                      isActive
+                        ? `${service.activeBg} ${service.activeBorder} ${service.color}`
+                        : "bg-white border-border text-muted-foreground hover:border-border hover:text-foreground"
+                    }`}
                   >
-                    <service.icon className={`h-8 w-8 ${service.color}`} />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-foreground text-lg">
-                      {service.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full mt-auto bg-primary text-primary-foreground"
-                    onClick={() => openBooking(service.id)}
-                    data-ocid={`services.book_button.${idx + 1}`}
+                    <service.icon className="h-4 w-4" />
+                    {service.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop: Two-panel layout */}
+            <div className="flex gap-6 items-start">
+              {/* Left Sidebar (desktop only) */}
+              <aside className="hidden md:flex flex-col w-56 shrink-0 sticky top-24 gap-1">
+                {SERVICES.map((service, idx) => {
+                  const isActive = service.id === activeServiceId;
+                  return (
+                    <button
+                      key={service.id}
+                      type="button"
+                      onClick={() => setActiveServiceId(service.id)}
+                      data-ocid={`services.tab.${idx + 1}`}
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200 text-left ${
+                        isActive
+                          ? `${service.activeBg} ${service.activeBorder} ${service.color}`
+                          : "bg-white border-transparent text-muted-foreground hover:bg-white hover:border-border hover:text-foreground"
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 ${
+                          isActive ? service.bg : "bg-muted"
+                        }`}
+                      >
+                        <service.icon
+                          className={`h-4 w-4 ${
+                            isActive ? service.color : "text-muted-foreground"
+                          }`}
+                        />
+                      </div>
+                      <span>{service.name}</span>
+                      {isActive && (
+                        <ChevronRight className="ml-auto h-4 w-4 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </aside>
+
+              {/* Right Content Panel */}
+              <div className="flex-1 min-w-0">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeServiceId}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.22, ease: "easeInOut" }}
+                    className="bg-card rounded-2xl border border-border shadow-card p-8 md:p-10"
+                    data-ocid="services.panel"
                   >
-                    Book Now
-                    <ChevronRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                    {/* Service Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-6 mb-8">
+                      <div
+                        className={`service-icon flex items-center justify-center w-20 h-20 rounded-2xl shrink-0 ${activeService.bg}`}
+                      >
+                        <activeService.icon
+                          className={`h-10 w-10 ${activeService.color}`}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
+                          {activeService.name}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {activeService.longDescription}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* What's Included */}
+                    <div className="mb-8">
+                      <h4 className="text-base font-display font-bold text-foreground mb-4 flex items-center gap-2">
+                        <span
+                          className="w-1 h-5 rounded-full inline-block"
+                          style={{ background: activeService.iconColor }}
+                        />
+                        What's Included
+                      </h4>
+                      <ul className="grid sm:grid-cols-2 gap-3">
+                        {activeBullets.map((bullet, idx) => (
+                          <li
+                            key={bullet}
+                            className="flex items-center gap-3 text-sm text-foreground"
+                            data-ocid={`services.item.${idx + 1}`}
+                          >
+                            <span
+                              className="flex items-center justify-center w-6 h-6 rounded-full shrink-0"
+                              style={{
+                                background: activeService.bg,
+                                color: activeService.iconColor,
+                              }}
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            </span>
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Book Now CTA */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        size="lg"
+                        className="bg-primary text-primary-foreground font-semibold px-8"
+                        onClick={() => openBooking(activeService.id)}
+                        data-ocid="services.primary_button"
+                      >
+                        <CalendarCheck className="mr-2 h-5 w-5" />
+                        Book {activeService.name} Now
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        asChild
+                        data-ocid="services.call_button"
+                      >
+                        <a href="tel:+919876543210">
+                          <Phone className="mr-2 h-5 w-5" />
+                          Call for Quick Help
+                        </a>
+                      </Button>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </section>
@@ -860,7 +1050,7 @@ function App() {
                 <div
                   key={t.name}
                   className="bg-card rounded-2xl p-6 shadow-card border border-border"
-                  data-ocid={`services.item.${idx + 1}`}
+                  data-ocid={`testimonials.item.${idx + 1}`}
                 >
                   <div className="flex items-center gap-1 mb-4">
                     {[1, 2, 3, 4, 5].slice(0, t.rating).map((n) => (
